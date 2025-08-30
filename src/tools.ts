@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 // Import functions
 import { transferS } from './tools/sonic/sOperations.js';
-import { transferErc20, burnErc20 } from './tools/sonic/sOperations.js';
+import { transferErc20, burnErc20 } from './tools/sonic/erc20Operations.js';
 import { getSBalance } from './tools/sonic/getSBalance.js';
 import { getErc20Balance } from './tools/sonic/getErc20Balance.js';
 import { deployContract } from './tools/sonic/deployContract.js';
@@ -69,7 +69,7 @@ const deployContractSchema = z.object({
 export const createTools = (agent: SonicAgentInterface) => [
   tool(withPrivateKey(transferS, agent), {
     name: 'transfer_s',
-    description: 'Transfer s (native Sonic token) to another wallet',
+    description: 'Transfer S (native Sonic token) to another wallet',
     schema: transferSSchema,
   }),
 

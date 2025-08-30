@@ -8,7 +8,7 @@ export const getErc20Balance = async ({
 }: { 
   tokenAddress: string;
   walletAddress?: string;
-}): Promise<number> => {
+}): Promise<string> => {
   try {
     const provider = getProvider();
     const agentAddress = getAgentAddress();
@@ -18,7 +18,7 @@ export const getErc20Balance = async ({
       throw new Error("Invalid wallet address format");
     }
     
-    // Validate token address (now mandatory)
+    // Validate token address 
     if (!tokenAddress) {
       throw new Error("Token address is required");
     }
@@ -49,7 +49,8 @@ export const getErc20Balance = async ({
     ]);
 
     const formattedBalance = ethers.formatUnits(balance, decimals);
-    return parseFloat(formattedBalance);
+    const numericBalance = parseFloat(formattedBalance);
+    return `${numericBalance} ${symbol}`;
   } catch (error: any) {
     throw new Error(`Error: ${error.message}`);
   }
