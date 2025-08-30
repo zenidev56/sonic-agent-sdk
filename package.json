@@ -3,19 +3,29 @@
   "version": "0.0.1",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
+  "type": "module",
   "scripts": {
     "build": "tsc",
-    "prepublishOnly": "npm run build"
+    "build:watch": "tsc --watch",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build"
   },
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "An AI agent SDK for Sonic blockchain",
   "dependencies": {
+    "@langchain/anthropic": "^0.3.11",
+    "@langchain/core": "^0.3.23",
+    "@langchain/openai": "^0.3.14",
     "dotenv": "^17.2.1",
-    "ethers": "^6.15.0"
+    "ethers": "^6.15.0",
+    "langchain": "^0.3.7",
+    "zod": "^3.24.1"
   },
   "devDependencies": {
-    "typescript": "^5.0.0",
-    "@types/node": "^20.0.0"
+    "@types/node": "^20.0.0",
+    "esbuild": "^0.25.9",
+    "ts-node": "^10.9.0",
+    "typescript": "^5.0.0"
   }
 }

@@ -1,2 +1,4 @@
-export * from './tools/sonic';
-export * from './core/client';
+export * from './SonicAgent.js';
+export * from './tools.js';
+export * from './tools/sonic/index.js';
+export * from './core/client.js';
