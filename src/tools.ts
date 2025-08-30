@@ -3,7 +3,7 @@ import { z } from 'zod';
 
 // Import functions
 import { transferS } from './tools/sonic/sOperations.js';
-import { transferErc20, burnErc20 } from './tools/sonic/erc20Operations.js';
+import { transferErc20, burnErc20 } from './tools/sonic/sOperations.js';
 import { getSBalance } from './tools/sonic/getSBalance.js';
 import { getErc20Balance } from './tools/sonic/getErc20Balance.js';
 import { deployContract } from './tools/sonic/deployContract.js';

@@ -5,21 +5,27 @@ import { createTools } from './tools.js';
 import { modelMapping } from './utils/models.js';
 import { ChatAnthropic } from '@langchain/anthropic';
 import { SystemMessage } from '@langchain/core/messages';
+import { RunnableWithMessageHistory } from '@langchain/core/runnables';
+import { InMemoryChatMessageHistory, type BaseChatMessageHistory } from '@langchain/core/chat_history';
 
-const systemMessage = new SystemMessage(
-  ` You are an AI agent on Sonic network capable of executing all kinds of transactions and interacting with the Sonic blockchain.
-    You are able to execute transactions on behalf of the user.
-
-    If the transaction was successful, return the response in the following format:
-    The transaction was successful. The transaction hash is: 0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
+// Default system prompt for Sonic agent
+const DEFAULT_SYSTEM_PROMPT = `You are an AI agent on Sonic network capable of executing all kinds of transactions and interacting with the Sonic blockchain.
+      You are able to execute transactions on behalf of the user.
   
-    If the transaction was unsuccessful, return the response in the following format, followed by an explanation if any known:
-    The transaction failed.
-  `,
-);
+      If the transaction was successful, return the response in the following format:
+      The transaction was successful. The transaction hash is: 0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef
+    
+      If the transaction was unsuccessful, return the response in the following format, followed by an explanation if any known:
+      The transaction failed.`;
 
-export const prompt = ChatPromptTemplate.fromMessages([
-  systemMessage,
+// Generate the system message using either default or custom personality
+const createSystemMessage = (personalityPrompt?: string) => {
+  const finalPrompt = personalityPrompt || DEFAULT_SYSTEM_PROMPT;
+  return new SystemMessage(finalPrompt);
+};
+
+export const prompt = (personalityPrompt?: string) => ChatPromptTemplate.fromMessages([
+  createSystemMessage(personalityPrompt),
   ['placeholder', '{chat_history}'],
   ['human', '{input}'],
   ['placeholder', '{agent_scratchpad}'],
@@ -30,6 +36,10 @@ export const createAgent = (
   modelName: keyof typeof modelMapping,
   openAiApiKey?: string,
   anthropicApiKey?: string,
+  options?: {
+    getMessageHistory?: (sessionId: string) => BaseChatMessageHistory;
+    personalityPrompt?: string; // New option for custom personality
+  },
 ) => {
   const model = () => {
     if (modelMapping[modelName] === 'openai') {
@@ -60,14 +70,40 @@ export const createAgent = (
 
   const tools = createTools(sonicAgent);
 
+  // Create prompt with optional personality
+  const agentPrompt = prompt(options?.personalityPrompt);
+
   const agent = createToolCallingAgent({
     llm: selectedModel,
     tools,
-    prompt,
+    prompt: agentPrompt,
   });
 
-  return new AgentExecutor({
+  const executor = new AgentExecutor({
     agent,
     tools,
   });
+
+  // Wrap executor with per-session message history
+  // Maintain a per-session message history map when no external provider is passed
+  const histories = new Map<string, InMemoryChatMessageHistory>();
+  const agentWithHistory = new RunnableWithMessageHistory({
+    runnable: executor,
+    getMessageHistory: (sessionId: string) => {
+      if (options?.getMessageHistory) {
+        return options.getMessageHistory(sessionId);
+      }
+      let history = histories.get(sessionId);
+      if (!history) {
+        history = new InMemoryChatMessageHistory();
+        histories.set(sessionId, history);
+      }
+      return history;
+    },
+    inputMessagesKey: 'input',
+    historyMessagesKey: 'chat_history',
+    outputMessagesKey: 'output',
+  });
+
+  return agentWithHistory;
 };

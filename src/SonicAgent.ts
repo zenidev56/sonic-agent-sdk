@@ -1,4 +1,4 @@
-import { transferS } from './tools/sonic/sOperations.js';
+import { transferS} from './tools/sonic/sOperations.js ';
 import { transferErc20, burnErc20 } from './tools/sonic/erc20Operations.js';
 import { getSBalance } from './tools/sonic/getSBalance.js';
 import { getErc20Balance } from './tools/sonic/getErc20Balance.js';
@@ -6,7 +6,8 @@ import { deployContract } from './tools/sonic/deployContract.js';
 import { initializeClient, setCurrentPrivateKey } from './core/client.js';
 import { createAgent } from './agent.js';
 import { applyFirewall } from './aifirewall/index.js';
-import type { AgentExecutor } from 'langchain/agents';
+import type { Runnable } from '@langchain/core/runnables';
+import type { BaseChatMessageHistory } from '@langchain/core/chat_history';
 import type { modelMapping } from './utils/models.js';
 
 export interface SonicAgentConfig {
@@ -15,6 +16,10 @@ export interface SonicAgentConfig {
   model: keyof typeof modelMapping;
   openAiApiKey?: string;
   anthropicApiKey?: string;
+  personalityPrompt?: string;
+  memory?: {
+    getMessageHistory?: (sessionId: string) => BaseChatMessageHistory;
+  };
 }
 
 export interface TransferSParams {
@@ -47,10 +52,12 @@ export interface DeployContractParams {
 export class SonicAgent {
   private privateKey: string;
   private rpcUrl: string;
-  private agentExecutor: AgentExecutor;
+  private agentExecutor: Runnable;
   private model: keyof typeof modelMapping;
   private openAiApiKey?: string;
   private anthropicApiKey?: string;
+  private defaultSessionId: string;
+  private getMessageHistory?: (sessionId: string) => BaseChatMessageHistory;
 
   constructor(config: SonicAgentConfig) {
     this.privateKey = config.privateKey;
@@ -58,6 +65,8 @@ export class SonicAgent {
     this.model = config.model;
     this.openAiApiKey = config.openAiApiKey;
     this.anthropicApiKey = config.anthropicApiKey;
+    this.getMessageHistory = config.memory?.getMessageHistory;
+    this.defaultSessionId = `sonic-agent-${Math.random().toString(36).slice(2)}-${Date.now()}`;
 
     if (!this.privateKey) {
       throw new Error('Private key is required.');
@@ -75,6 +84,10 @@ export class SonicAgent {
       this.model,
       this.openAiApiKey,
       this.anthropicApiKey,
+      { 
+        getMessageHistory: this.getMessageHistory,
+        personalityPrompt: config.personalityPrompt
+      },
     );
   }
 
@@ -86,19 +99,17 @@ export class SonicAgent {
     };
   }
 
-  async execute(input: string) {
-   
-    
-
+  async execute(input: string, options?: { sessionId?: string }) {
     const sanitizedInput = await applyFirewall(input, {
       model: this.model,
       openAiApiKey: this.openAiApiKey,
       anthropicApiKey: this.anthropicApiKey,
     });
 
-    const response = await this.agentExecutor.invoke({
-      input: sanitizedInput,
-    });
+    const response = await this.agentExecutor.invoke(
+      { input: sanitizedInput },
+      { configurable: { sessionId: options?.sessionId ?? this.defaultSessionId } },
+    );
 
     setCurrentPrivateKey(this.privateKey);
 
