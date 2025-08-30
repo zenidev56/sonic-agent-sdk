@@ -49,7 +49,7 @@ const burnErc20Schema = z.object({
 });
 
 const getSBalanceSchema = z.object({
-  walletAddress: z.string().nullable().optional().describe('The wallet address to check s balance (optional, uses agent wallet if not provided)'),
+  walletAddress: z.string().nullable().optional().describe('The wallet address to check S balance (optional, uses agent wallet if not provided)'),
 });
 
 const getErc20BalanceSchema = z.object({
@@ -69,7 +69,7 @@ const deployContractSchema = z.object({
 export const createTools = (agent: SonicAgentInterface) => [
   tool(withPrivateKey(transferS, agent), {
     name: 'transfer_s',
-    description: 'Transfer S (native Sonic token) to another wallet',
+    description: 'Transfer s (native Sonic token) to another wallet',
     schema: transferSSchema,
   }),
 
