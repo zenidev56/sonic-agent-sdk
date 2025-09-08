@@ -1,6 +1,6 @@
 {
   "name": "sonic-agent-sdk",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "type": "module",
@@ -8,11 +8,31 @@
     "build": "tsc",
     "build:watch": "tsc --watch",
     "clean": "rm -rf dist",
-    "prepublishOnly": "npm run clean && npm run build"
+    "prepublishOnly": "npm run clean && npm run build",
+    "test": "node --loader ts-node/esm test/balance.test.ts"
   },
   "author": "",
   "license": "ISC",
   "description": "An AI agent SDK for Sonic blockchain",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/zenidev56/sonic-agent-sdk.git"
+  },
+  "homepage": "https://github.com/zenidev56/sonic-agent-sdk#readme",
+  "bugs": {
+    "url": "https://github.com/zenidev56/sonic-agent-sdk/issues"
+  },
+  "keywords": [
+    "sonic",
+    "blockchain",
+    "ai",
+    "agent",
+    "ethereum",
+    "web3",
+    "sdk",
+    "crypto",
+    "erc20"
+  ],
   "dependencies": {
     "@langchain/anthropic": "^0.3.11",
     "@langchain/core": "^0.3.23",

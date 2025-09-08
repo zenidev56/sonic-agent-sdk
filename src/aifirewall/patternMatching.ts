@@ -1,3 +1,4 @@
+// src/aifirewall/patternMatching.ts
 
 const forbiddenPatterns = [
   /private key/i,
